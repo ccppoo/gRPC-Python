@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "user.proto";
+
+message ChatMessage {
+    repeated Chat chatMessage = 1;
+
+    message Chat {
+        string User = 1;
+        string message = 2;
+        int32 messageCount = 3;
+    }
+}
