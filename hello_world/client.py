@@ -23,6 +23,18 @@ import helloworld_pb2
 import helloworld_pb2_grpc
 
 
+# using class
+class MyClient:
+
+    def __init__(self, stub, channel):
+        self.stub = stub(channel)
+
+    def SayHello(self, name_: str):
+        response = self.stub.SayHello(helloworld_pb2.HelloRequest(name=name_))
+        print("Greeter client received: " + response.message)
+
+
+# original example
 def run():
 
     with grpc.insecure_channel('localhost:50051') as channel:
@@ -42,4 +54,30 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+
+    # run()
+
+    import asyncio
+
+    channel = grpc.insecure_channel('localhost:50051')
+    stub = helloworld_pb2_grpc.GreeterStub
+    mc = MyClient(stub, channel)
+
+    name = ['ccppoo', 'posix', 'linux', 'Kotlin', 'Java', 'cpp']
+
+    async def sendRandomName(handler):
+        for n in name:
+            mc.SayHello(name_=n)
+            await asyncio.sleep(1.0)
+        handler.stop()
+
+    loop = asyncio.get_event_loop()
+
+    try:
+        asyncio.ensure_future(sendRandomName(loop))
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Closing Loop")
+        loop.close()
