@@ -18,17 +18,17 @@ import user_pb2 as user__pb2
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='chat_server.proto',
-  package='',
+  package='chating.server',
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11\x63hat_server.proto\x1a\rmessage.proto\x1a\nuser.proto\"\x1c\n\x05Hello\x12\x13\n\x04user\x18\x01 \x01(\x0b\x32\x05.User\"1\n\x04Ping\x12\x13\n\x04user\x18\x01 \x01(\x0b\x32\x05.User\x12\x14\n\x0cmessageCount\x18\x02 \x01(\x05\".\n\x04Pong\x12\x0f\n\x02ok\x18\x01 \x01(\x0b\x32\x03.Ok\x12\x15\n\x05state\x18\x02 \x01(\x0e\x32\x06.State\"2\n\x02Ok\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x0cmessageCount\x18\x02 \x01(\x05\x12\n\n\x02id\x18\x03 \x01(\x05*\x1b\n\x05State\x12\x08\n\x04IDLE\x10\x00\x12\x08\n\x04\x42USY\x10\x01\x32\x82\x01\n\nChatServer\x12\x14\n\x05Login\x12\x06.Hello\x1a\x03.Ok\x12\x1b\n\x0bPingRequest\x12\x05.Ping\x1a\x05.Pong\x12\x1f\n\nGetMessage\x12\x03.Ok\x1a\x0c.ChatMessage\x12 \n\x0bSendMessage\x12\x0c.ChatMessage\x1a\x03.Okb\x06proto3'
+  serialized_pb=b'\n\x11\x63hat_server.proto\x12\x0e\x63hating.server\x1a\rmessage.proto\x1a\nuser.proto\")\n\x05Hello\x12 \n\x04user\x18\x01 \x01(\x0b\x32\x12.chating.user.User\">\n\x04Ping\x12 \n\x04user\x18\x01 \x01(\x0b\x32\x12.chating.user.User\x12\x14\n\x0cmessageCount\x18\x02 \x01(\x05\"L\n\x04Pong\x12\x1e\n\x02ok\x18\x01 \x01(\x0b\x32\x12.chating.server.Ok\x12$\n\x05state\x18\x02 \x01(\x0e\x32\x15.chating.server.State\"2\n\x02Ok\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x0cmessageCount\x18\x02 \x01(\x05\x12\n\n\x02id\x18\x03 \x01(\x05*\x1b\n\x05State\x12\x08\n\x04IDLE\x10\x00\x12\x08\n\x04\x42USY\x10\x01\x32\xfe\x01\n\nChatServer\x12\x32\n\x05Login\x12\x15.chating.server.Hello\x1a\x12.chating.server.Ok\x12\x39\n\x0bPingRequest\x12\x14.chating.server.Ping\x1a\x14.chating.server.Pong\x12?\n\nGetMessage\x12\x12.chating.server.Ok\x1a\x1d.chating.message.ChatMessages\x12@\n\x0bSendMessage\x12\x1d.chating.message.ChatMessages\x1a\x12.chating.server.Okb\x06proto3'
   ,
   dependencies=[message__pb2.DESCRIPTOR,user__pb2.DESCRIPTOR,])
 
 _STATE = _descriptor.EnumDescriptor(
   name='State',
-  full_name='State',
+  full_name='chating.server.State',
   filename=None,
   file=DESCRIPTOR,
   create_key=_descriptor._internal_create_key,
@@ -46,8 +46,8 @@ _STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=229,
-  serialized_end=256,
+  serialized_start=301,
+  serialized_end=328,
 )
 _sym_db.RegisterEnumDescriptor(_STATE)
 
@@ -59,14 +59,14 @@ BUSY = 1
 
 _HELLO = _descriptor.Descriptor(
   name='Hello',
-  full_name='Hello',
+  full_name='chating.server.Hello',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='user', full_name='Hello.user', index=0,
+      name='user', full_name='chating.server.Hello.user', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -84,28 +84,28 @@ _HELLO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=48,
-  serialized_end=76,
+  serialized_start=64,
+  serialized_end=105,
 )
 
 
 _PING = _descriptor.Descriptor(
   name='Ping',
-  full_name='Ping',
+  full_name='chating.server.Ping',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='user', full_name='Ping.user', index=0,
+      name='user', full_name='chating.server.Ping.user', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='messageCount', full_name='Ping.messageCount', index=1,
+      name='messageCount', full_name='chating.server.Ping.messageCount', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -123,28 +123,28 @@ _PING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=78,
-  serialized_end=127,
+  serialized_start=107,
+  serialized_end=169,
 )
 
 
 _PONG = _descriptor.Descriptor(
   name='Pong',
-  full_name='Pong',
+  full_name='chating.server.Pong',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ok', full_name='Pong.ok', index=0,
+      name='ok', full_name='chating.server.Pong.ok', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='state', full_name='Pong.state', index=1,
+      name='state', full_name='chating.server.Pong.state', index=1,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -162,35 +162,35 @@ _PONG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=129,
-  serialized_end=175,
+  serialized_start=171,
+  serialized_end=247,
 )
 
 
 _OK = _descriptor.Descriptor(
   name='Ok',
-  full_name='Ok',
+  full_name='chating.server.Ok',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ok', full_name='Ok.ok', index=0,
+      name='ok', full_name='chating.server.Ok.ok', index=0,
       number=1, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='messageCount', full_name='Ok.messageCount', index=1,
+      name='messageCount', full_name='chating.server.Ok.messageCount', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='id', full_name='Ok.id', index=2,
+      name='id', full_name='chating.server.Ok.id', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -208,8 +208,8 @@ _OK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=177,
-  serialized_end=227,
+  serialized_start=249,
+  serialized_end=299,
 )
 
 _HELLO.fields_by_name['user'].message_type = user__pb2._USER
@@ -226,28 +226,28 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 Hello = _reflection.GeneratedProtocolMessageType('Hello', (_message.Message,), {
   'DESCRIPTOR' : _HELLO,
   '__module__' : 'chat_server_pb2'
-  # @@protoc_insertion_point(class_scope:Hello)
+  # @@protoc_insertion_point(class_scope:chating.server.Hello)
   })
 _sym_db.RegisterMessage(Hello)
 
 Ping = _reflection.GeneratedProtocolMessageType('Ping', (_message.Message,), {
   'DESCRIPTOR' : _PING,
   '__module__' : 'chat_server_pb2'
-  # @@protoc_insertion_point(class_scope:Ping)
+  # @@protoc_insertion_point(class_scope:chating.server.Ping)
   })
 _sym_db.RegisterMessage(Ping)
 
 Pong = _reflection.GeneratedProtocolMessageType('Pong', (_message.Message,), {
   'DESCRIPTOR' : _PONG,
   '__module__' : 'chat_server_pb2'
-  # @@protoc_insertion_point(class_scope:Pong)
+  # @@protoc_insertion_point(class_scope:chating.server.Pong)
   })
 _sym_db.RegisterMessage(Pong)
 
 Ok = _reflection.GeneratedProtocolMessageType('Ok', (_message.Message,), {
   'DESCRIPTOR' : _OK,
   '__module__' : 'chat_server_pb2'
-  # @@protoc_insertion_point(class_scope:Ok)
+  # @@protoc_insertion_point(class_scope:chating.server.Ok)
   })
 _sym_db.RegisterMessage(Ok)
 
@@ -255,17 +255,17 @@ _sym_db.RegisterMessage(Ok)
 
 _CHATSERVER = _descriptor.ServiceDescriptor(
   name='ChatServer',
-  full_name='ChatServer',
+  full_name='chating.server.ChatServer',
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=259,
-  serialized_end=389,
+  serialized_start=331,
+  serialized_end=585,
   methods=[
   _descriptor.MethodDescriptor(
     name='Login',
-    full_name='ChatServer.Login',
+    full_name='chating.server.ChatServer.Login',
     index=0,
     containing_service=None,
     input_type=_HELLO,
@@ -275,7 +275,7 @@ _CHATSERVER = _descriptor.ServiceDescriptor(
   ),
   _descriptor.MethodDescriptor(
     name='PingRequest',
-    full_name='ChatServer.PingRequest',
+    full_name='chating.server.ChatServer.PingRequest',
     index=1,
     containing_service=None,
     input_type=_PING,
@@ -285,20 +285,20 @@ _CHATSERVER = _descriptor.ServiceDescriptor(
   ),
   _descriptor.MethodDescriptor(
     name='GetMessage',
-    full_name='ChatServer.GetMessage',
+    full_name='chating.server.ChatServer.GetMessage',
     index=2,
     containing_service=None,
     input_type=_OK,
-    output_type=message__pb2._CHATMESSAGE,
+    output_type=message__pb2._CHATMESSAGES,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
     name='SendMessage',
-    full_name='ChatServer.SendMessage',
+    full_name='chating.server.ChatServer.SendMessage',
     index=3,
     containing_service=None,
-    input_type=message__pb2._CHATMESSAGE,
+    input_type=message__pb2._CHATMESSAGES,
     output_type=_OK,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
