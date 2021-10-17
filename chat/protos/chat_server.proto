@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package chating.server;
+
 import "message.proto";
 import "user.proto";
 
@@ -12,22 +14,22 @@ service ChatServer {
     rpc PingRequest (Ping) returns (Pong);
     
     // contains chat message 
-    rpc GetMessage (Ok) returns (ChatMessage);
+    rpc GetMessage (Ok) returns (message.ChatMessages);
 
     // send message from client to server
-    rpc SendMessage (ChatMessage) returns (Ok);
+    rpc SendMessage (message.ChatMessages) returns (Ok);
 }
 
 message Hello {
     // send User name, with no id (default value)
-    User user = 1;
+    user.User user = 1;
 }
 
 // Since gRPC server can't invoke call to client, 
 // client should continuaslly Ping to server to fetch messages
 message Ping {
     // 지금까지 받은 메세지 messageCount
-    User user = 1;
+    user.User user = 1;
     int32 messageCount = 2;
 }
 

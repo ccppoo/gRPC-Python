@@ -1,13 +1,17 @@
 syntax = "proto3";
-
 import "user.proto";
 
-message ChatMessage {
-    repeated Chat chatMessage = 1;
+package chating.message;
 
-    message Chat {
-        string User = 1;
-        string message = 2;
-        int32 messageCount = 3;
-    }
+
+
+message ChatMessages {
+    repeated Chat chatMessages = 1;
+
+}
+
+message Chat {
+    user.User user = 1;
+    string message = 2;
+    int32 messageCount = 3;
 }
