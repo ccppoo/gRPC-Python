@@ -3,6 +3,14 @@ import grpc
 from proto_modules import chat_server_pb2 as __pb2
 from proto_modules import chat_server_pb2_grpc as __pb2_grpc
 
+import asyncio
+
+# to activate : python chat_client.py --dev
+from argparser import DEV
+
+myChatClient = None
+
+
 ## Protocol Buffer Data : defined at /protos/*.proto ##
 
 # chat_server.proto
@@ -41,10 +49,12 @@ class MyChatClient:
             messageCount=self.msgCount
         )
 
-    def makeOk(self, ):
+    def makeOk(self, msgCount):
+
+        self.msgCount
         return Ok(
             ok=True,
-            messageCount=self.msgCount,
+            messageCount=msgCount,
             id=self.id
         )
 
@@ -63,87 +73,139 @@ class MyChatClient:
 
     # # override methods from ChatServer service
 
-    def Login(self) -> Ok:
+    def Login(self,) -> Ok:
         response: Ok = self.stub.Login(Hello(user=self.makeUser()))
 
-        # set id from server's response
+        # save id from server's response
         self.id = response.id
 
-        print()
-        print("::: Login :::")
+        ok = response.ok
+        msgCnt = response.messageCount
+        id = response.id
 
-        a, b, c = response.ok, response.messageCount, response.id
+        if DEV:
+            print()
+            print(":::   Login   :::")
+            print("ok : {}".format(ok))
+            print("messageCount : {}".format(msgCnt))
+            print("id : {}".format(id))
+            print("::: end Login :::")
 
-        print("response :: Ok :: ok")
-        print("OK.ok : {}".format(a))
-
-        print("response :: messageCount")
-        print("messageCount : {}".format(b))
-
-        print("response :: id")
-        print("id : {}".format(c))
+        # update initial msgCount received from server
+        self.msgCount = msgCnt
 
     def PingRequest(self,) -> Pong:
         response: Pong = self.stub.PingRequest(self.makePing())
 
-        a, b = response.ok, response.state
+        _ok, state = response.ok, response.state
 
-        print()
-        print("::: PingRequest :::")
-
-        print("response :: Pong :: ok")
-        print("OK.ok : {}".format(a.ok))
-        print("OK.messageCount : {}".format(a.messageCount))
-        print("OK.id : {}".format(a.id))
-
-        print("response :: Pong :: state")
-        print("state : {}".format(b))
-
-    def GetMessage(self, ) -> ChatMessages:
-        response: ChatMessages = self.stub.GetMessage(self.makeOk())
-
-        a = response.chatMessages
-
-        print()
-        print("::: GetMessage :::")
-
-        print("response :: ChatMessages :: Chat[]")
-
-        for msg in response.chatMessages:
+        if DEV:
             print()
-            print("user_name : {}".format(msg.user.name))
-            print("user_id : {}".format(msg.user.id))
-            print("msgCount : {}".format(msg.messageCount))
-            print("message : {}".format(msg.message))
+            print(":::   PingRequest   :::")
+            print("OK.ok : {}".format(_ok.ok))
+            print("OK.messageCount : {}".format(_ok.messageCount))
+            print("OK.id : {}".format(_ok.id))
+            print("state : {}".format(state))
+            print("::: end PingRequest :::")
+
+        assert _ok.id == self.id
+
+        if not DEV and _ok.messageCount > self.msgCount:
+            self.GetMessage(self.msgCount)
+            self.msgCount = _ok.messageCount
+
+    def GetMessage(self, fromMsgCount: int = 0) -> ChatMessages:
+
+        fromMsgCount = self.msgCount
+
+        if DEV:
+            fromMsgCount = 0
+            # fromMsgCount = self.msgCount
+        else:
+            # in non-dev mode, it should not called directly
+            assert fromMsgCount != 0
+        response: ChatMessages = self.stub.GetMessage(
+            self.makeOk(0))
+
+        chats = response.chatMessages
+        print("len(chats) : {}".format(len(chats)))
+
+        if DEV:
+            print()
+            print(":::   GetMessage   :::")
+
+        for msg in chats:
+            msgcnt = msg.messageCount
+            sender = msg.user.name
+            sender_id = msg.user.id
+            content = msg.message
+            print("[{:3}] {:10}({}): {}".format(
+                msgcnt, sender, sender_id, content))
+        if DEV:
+            print("::: end GetMessage :::")
+
+        # update msgCount
+        # print(len(chats))
+        # self.msgCount = chats[-1].messageCount
 
     def SendMessage(self, msg: str) -> Ok:
+        print("[{:3}] {:10}({}): {}".format(
+            self.msgCount, self.name, self.id, msg))
+
         response: Ok = self.stub.SendMessage(self.makeChatMessages(msg))
 
-        print()
-        print("::: SendMessage :::")
+        if DEV:
+            print()
+            print(":::   SendMessage   :::")
+            print("OK.ok : {}".format(response.ok))
+            print("messageCount : {}".format(response.messageCount))
+            print("id : {}".format(response.id))
+            print("::: end SendMessage :::")
 
-        print("response :: Ok :: ok")
-        print("OK.ok : {}".format(response.ok))
+        assert response.id == self.id
 
-        print("response :: messageCount")
-        print("messageCount : {}".format(response.messageCount))
-
-        print("response :: id")
-        print("id : {}".format(response.id))
+        if not DEV and response.messageCount > self.msgCount:
+            self.GetMessage(self.msgCount)
+            self.msgCount = response.messageCount
 
 
 def run():
     stub = __pb2_grpc.ChatServerStub
     channel = grpc.insecure_channel('localhost:50051')
-    myChatClient = MyChatClient('ccppoo', stub, channel)
 
-    myChatClient.Login()
+    if DEV:
+        myChatClient = MyChatClient('DEV USER', stub, channel)
+    else:
+        name = input("User name : ")
+        myChatClient = MyChatClient(name, stub, channel)
 
-    myChatClient.PingRequest()
+    # async def runClient():
 
-    myChatClient.GetMessage()
+    #     myChatClient.Login()
 
-    myChatClient.SendMessage("Hello This is Client")
+    #     while True:
+    #         # send Ping every 0.5 second
+    #         await asyncio.sleep(.1)
+    #         myChatClient.PingRequest()
+    #         value = await ainput("msg >> ")
+    #         if value == 'stop':
+    #             loop.stop()
+
+    if DEV:
+        myChatClient.Login()
+
+        myChatClient.PingRequest()
+
+        myChatClient.GetMessage()
+
+        myChatClient.SendMessage(
+            "Hello This is Client {}".format(myChatClient.msgCount))
+    # else:
+    #     loop = asyncio.get_event_loop()
+
+    #     loop.run_until_complete(runClient())
+
+    #     loop.run_forever()
 
 
 if __name__ == '__main__':

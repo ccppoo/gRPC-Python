@@ -3,6 +3,9 @@ from proto_modules import chat_server_pb2 as __pb2
 import grpc
 from concurrent import futures
 
+# to activate : python chat_server.py --dev
+from argparser import DEV
+
 ## Protocol Buffer Data : defined at /protos/*.proto ##
 
 # chat_server.proto
@@ -21,116 +24,172 @@ User = __pb2.user__pb2.User
 
 
 class ChatServerPython(__pb2_grpc.ChatServerServicer):
+    # ##### METHOD NAMING RULES #####
+    #
+    # get~, add~ : method for program logic, nothing to do with gRPC
+    # make~ : mathod for making proto message buffer
+    # others : overriding method defined from chat_server.proto :: service ChatServer
 
     def __init__(self) -> None:
         super().__init__()
         self.chat_que = []
-        self.users = set()
+        self.users = dict()
+        self.userCnt = 0
+
+        self.chat_que.append({
+            'user': "SERVER",
+            'msg': "SERVER INIT"
+        })
 
     def getMsgCount(self, ) -> int:
         return len(self.chat_que)
 
+    def addNewUser(self, name) -> int:
+        self.userCnt += 1
+        self.users[name] = self.userCnt
+
+        return self.userCnt
+
+    def getUserByID(self, userID: int) -> str:
+        for name, id in self.users.items():
+            if(id == userID):
+                return name
+        else:
+            return ''
+
     # # message(Protocol buffer data) maker
     def makeUser(self, _name: str, _id: int = 0):
+
+        if (_id != 0):
+            return User(
+                name=_name,
+                id=_id
+            )
+
         return User(
             name=_name,
-            id=_id
+            id=self.users.get(_name)
         )
 
-    def makePong(self, ):
-        print()
-        print('::: Make Pong :::')
+    def makePong(self, UserMsgCount: int, id: int):
+
+        st = State.IDLE if UserMsgCount == self.getMsgCount() else State.BUSY
+
         return Pong(
-            ok=self.makeOk(True, 42, 000),
-            state=State.IDLE
+            ok=self.makeOk(True,  id),
+            state=st
         )
 
-    def makeOk(self, valid: bool, msgCounf: int, id: int = 0):
+    def makeOk(self, valid: bool, id: int = 0):
+        # while sending Ok proto buff from Server,
+        # there are no reason to get msgCount from callee
+        # always need to send latest value to client
 
-        print()
-        print('::: Make Ok :::')
         return Ok(
-            ok=True,
+            ok=valid,
             messageCount=self.getMsgCount(),
             id=id
         )
 
-    def makeChatMessages(self, ):
-        pass
+    def makeChatMessages(self, UserMsgCount: int):
+        chat_list = []
+
+        for i, ch in enumerate(self.chat_que[UserMsgCount:]):
+
+            chat_list.append(Chat(
+                user=self.makeUser(ch['user']),
+                message=ch['msg'],
+                messageCount=UserMsgCount + i
+            ))
+
+        _chatMsg = ChatMessages()
+        _chatMsg.chatMessages.extend(chat_list)
+
+        return _chatMsg
 
     # # define methods from ChatServer service
     def Login(self, request: Hello, context) -> Ok:
-        print()
-        print("::: Login :::")
 
-        print("request :: Hello :: User")
-        print("User user.name : {}".format(request.user.name))
-        print("User user.id : {}".format(request.user.id))
+        name: str = request.user.name
+        id: int = request.user.id
 
-        _name, _id = request.user.name, request.user.id
+        if DEV:
+            print()
+            print(":::   Login   :::")
+            print("From: {}({})".format(name, id))
+            print("::: end Login :::")
 
-        # invalid operation -> Login should only called for once
-        if(_id != 0):
-            return self.makeOk(False, _id)
+        # invalid operation 1 -> Login should only called for once
+        if(id != 0):
+            return self.makeOk(False, id)
+
+        # invalid operation 2 -> User nick name used before
+        #                 or client restarted with same nickname used before
+        if(name in self.users):
+            return self.makeOk(False, self.users[name])
 
         return self.makeOk(
             True,
-            self.getMsgCount(),
-            123
+            self.addNewUser(name)
         )
 
     def PingRequest(self, request: Ping, context) -> Pong:
-        print()
-        print("::: PingRequest :::")
 
-        print("request :: Ping :: User")
-        print("User user.name : {}".format(request.user.name))
-        print("User user.id : {}".format(request.user.id))
+        name: str = request.user.name
+        id: int = request.user.id
+        msgCnt: int = request.messageCount
 
-        print("request :: Ping :: messageCount")
-        print("messageCount : {}".format(request.messageCount))
+        if DEV:
+            print()
+            print(":::   PingRequest   :::")
+            print("From: {}({})".format(name, id))
+            print("user messageCount: {} / delay: {}".
+                  format(msgCnt, self.getMsgCount()-msgCnt))
+            print("::: end PingRequest :::")
 
-        return self.makePong()
+        return self.makePong(msgCnt, id)
 
     def GetMessage(self, request: Ok, context) -> ChatMessages:
-        print()
-        print("::: GetMessage :::")
 
-        print("request :: ok")
-        print("Ok ok : {}".format(request.ok))
+        ok: bool = request.ok
+        id: int = request.id
+        msgCnt: int = request.messageCount
 
-        print("request :: messageCount")
-        print("messageCount : {}".format(request.messageCount))
+        if DEV:
+            print()
+            print(":::   GetMessage   :::")
+            print("ok: {}".format(ok))
+            print("From: {}({})".format(self.getUserByID(id), id))
+            print("user messageCount: {} / delay: {}".
+                  format(msgCnt, self.getMsgCount()-msgCnt))
+            print("::: end GetMessage :::")
 
-        print("request :: id")
-        print("id : {}".format(request.id))
-
-        li = []
-        for i in range(5, 10):
-            li.append(Chat(
-                user=self.makeUser('naa_{}'.format(i), 123),
-                message='hehe__{}'.format(i),
-                messageCount=i
-            ))
-
-        chat_grpc = ChatMessages()
-        chat_grpc.chatMessages.extend(li)
-        # [chat_grpc.chatMessages.append(x) for x in li]
-
-        return chat_grpc
+        return self.makeChatMessages(msgCnt)
 
     def SendMessage(self, request: ChatMessages, context) -> Ok:
-        print()
-        print("::: SendMessage :::")
 
-        print("response :: ChatMessages :: Chat[]")
-        msg = request.chatMessages[0]
-        print("user_name : {}".format(msg.user.name))
-        print("user_id : {}".format(msg.user.id))
-        print("msgCount : {}".format(msg.messageCount))
-        print("message : {}".format(msg.message))
+        _msg: Chat = request.chatMessages[0]
 
-        return self.makeOk(True, self.getMsgCount(), 999)
+        name: str = _msg.user.name
+        id: int = _msg.user.id
+        msgCnt: int = _msg.messageCount
+        msg: str = _msg.message
+
+        if DEV:
+            print()
+            print(":::   SendMessage   :::")
+            print("From: {}({})".format(name, id))
+            print("user messageCount: {} / delay: {}".
+                  format(msgCnt, self.getMsgCount()-msgCnt))
+            print("content: {}".format(msg))
+            print("::: end SendMessage :::")
+
+        self.chat_que.append({
+            'user': name,
+            'msg': msg
+        })
+
+        return self.makeOk(True, id)
 
 
 def serve():
@@ -138,18 +197,15 @@ def serve():
         futures.ThreadPoolExecutor(max_workers=10)
     )
 
-    __pb2_grpc\
-        .add_ChatServerServicer_to_server(
-            ChatServerPython(), server
-        )
+    __pb2_grpc.add_ChatServerServicer_to_server(
+        ChatServerPython(), server
+    )
 
     # gRPC는 http L7 상에서 작동하므로 포트를 오픈한다.
     server.add_insecure_port('[::]:50051')
     server.start()
 
     # test
-
-    print('hello')
     server.wait_for_termination()
 
     server.stop(.5)
