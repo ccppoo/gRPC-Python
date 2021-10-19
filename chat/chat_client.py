@@ -8,8 +8,19 @@ import asyncio
 # to activate : python chat_client.py --dev
 from argparser import DEV
 
+from typing import NewType
+
+# Typing
+USER_NAME = NewType('UserName', str)
+USER_ID = NewType('UserId', int)
+msgCONTENT = NewType('msgContent', str)
+msgCOUNT = NewType('msgCount', int)
+
+# globals
 myChatClient = None
 
+CLI = __name__ == '__main__'
+GUI = not CLI and __name__ == 'chat_client'
 
 ## Protocol Buffer Data : defined at /protos/*.proto ##
 
@@ -37,21 +48,19 @@ class MyChatClient:
 
     # # message(Protocol buffer data) maker
 
-    def makeUser(self, ):
+    def __makeUser(self, ) -> User:
         return User(
             name=self.name,
             id=self.id
         )
 
-    def makePing(self, ):
+    def __makePing(self, ) -> Ping:
         return Ping(
-            user=self.makeUser(),
+            user=self.__makeUser(),
             messageCount=self.msgCount
         )
 
-    def makeOk(self, msgCount):
-
-        self.msgCount
+    def __makeOk(self, msgCount) -> Ok:
         return Ok(
             ok=True,
             messageCount=msgCount,
@@ -59,9 +68,9 @@ class MyChatClient:
         )
 
     # make one message per chat
-    def makeChatMessages(self, msg: str):
+    def __makeChatMessages(self, msg: str) -> ChatMessages:
         chat = Chat(
-            user=self.makeUser(),
+            user=self.__makeUser(),
             message=msg,
             messageCount=self.msgCount
         )
@@ -73,8 +82,9 @@ class MyChatClient:
 
     # # override methods from ChatServer service
 
-    def Login(self,) -> Ok:
-        response: Ok = self.stub.Login(Hello(user=self.makeUser()))
+    # send : OK // get : Hello
+    def Login(self,) -> tuple(msgCOUNT, USER_ID):
+        response: Ok = self.stub.Login(Hello(user=self.__makeUser()))
 
         # save id from server's response
         self.id = response.id
@@ -94,79 +104,111 @@ class MyChatClient:
         # update initial msgCount received from server
         self.msgCount = msgCnt
 
-    def PingRequest(self,) -> Pong:
-        response: Pong = self.stub.PingRequest(self.makePing())
+        return (msgCnt, id)
 
-        _ok, state = response.ok, response.state
+    # send : Pong // get : Ping
+    def PingRequest(self,) -> tuple(msgCOUNT):
+        response: Pong = self.stub.PingRequest(self.__makePing())
+
+        _ok, _state = response.ok, response.state
+
+        _id, _msgCount = _ok.id, _ok.messageCount
+
+        assert _ok.id == self.id
 
         if DEV:
             print()
             print(":::   PingRequest   :::")
             print("OK.ok : {}".format(_ok.ok))
-            print("OK.messageCount : {}".format(_ok.messageCount))
-            print("OK.id : {}".format(_ok.id))
-            print("state : {}".format(state))
+            print("OK.messageCount : {}".format(_msgCount))
+            print("OK.id : {}".format(_id))
+            print("state : {}".format(_state))
             print("::: end PingRequest :::")
 
-        assert _ok.id == self.id
+        if CLI and _msgCount > self.msgCount:
+            self.msgCount, oldMsgCount = _msgCount, self.msgCount
+            self.GetMessage(oldMsgCount)
 
-        if not DEV and _ok.messageCount > self.msgCount:
-            self.GetMessage(self.msgCount)
-            self.msgCount = _ok.messageCount
+        # In case of GUI mode, GUI decides when to call GetMessage
+        if GUI:
+            return (_ok.messageCount, )
 
-    def GetMessage(self, fromMsgCount: int = 0) -> ChatMessages:
+    # send : Ok // get : ChatMessages
 
-        fromMsgCount = self.msgCount
+    def GetMessage(self, fromMsgCount: int = 0) -> \
+            list((msgCOUNT, USER_NAME, USER_ID, msgCONTENT)):
 
         if DEV:
             fromMsgCount = 0
             # fromMsgCount = self.msgCount
-        else:
-            # in non-dev mode, it should not called directly
+        if CLI:
+            # in CLI mode, this method should not called directly
+            # this should be called by following order :
+            #                           PingRequest -> GetMessage
+            fromMsgCount = self.msgCount
+        if CLI or GUI:
             assert fromMsgCount != 0
-        response: ChatMessages = self.stub.GetMessage(
-            self.makeOk(0))
 
+        response: ChatMessages = self.stub.GetMessage(
+            self.__makeOk(fromMsgCount)
+        )
+
+        # ! chatMessages is consumable like generator
         chats = response.chatMessages
-        print("len(chats) : {}".format(len(chats)))
+
+        if GUI:
+            return [
+                (m.messageCount, m.user.name, m.user.id, m.message)
+                for m in chats
+            ]
 
         if DEV:
             print()
+            print("len(chats) : {}".format(len(chats)))
             print(":::   GetMessage   :::")
 
-        for msg in chats:
-            msgcnt = msg.messageCount
-            sender = msg.user.name
-            sender_id = msg.user.id
-            content = msg.message
-            print("[{:3}] {:10}({}): {}".format(
-                msgcnt, sender, sender_id, content))
+        if DEV or CLI:
+            for msg in chats:
+                msgcnt = msg.messageCount
+                sender = msg.user.name
+                sender_id = msg.user.id
+                content = msg.message
+                print("[{:3}] {:10}({}): {}".format(
+                    msgcnt, sender, sender_id, content))
+
         if DEV:
             print("::: end GetMessage :::")
 
-        # update msgCount
-        # print(len(chats))
-        # self.msgCount = chats[-1].messageCount
+    # send : ChatMessages // get : Ok
+    def SendMessage(self, msg: str) -> tuple(msgCOUNT):
 
-    def SendMessage(self, msg: str) -> Ok:
-        print("[{:3}] {:10}({}): {}".format(
-            self.msgCount, self.name, self.id, msg))
+        if CLI:
+            print("[{:3}] {:10}({}): {}".format(
+                self.msgCount, self.name, self.id, msg))
 
-        response: Ok = self.stub.SendMessage(self.makeChatMessages(msg))
+        response: Ok = self.stub.SendMessage(self.__makeChatMessages(msg))
+
+        assert response.id == self.id
+
+        _ok, _msgCount, _id = response.ok, response.messageCount, response.id
 
         if DEV:
             print()
             print(":::   SendMessage   :::")
-            print("OK.ok : {}".format(response.ok))
-            print("messageCount : {}".format(response.messageCount))
-            print("id : {}".format(response.id))
+            print("OK.ok : {}".format(_ok))
+            print("messageCount : {}".format(_msgCount))
+            print("id : {}".format(_id))
             print("::: end SendMessage :::")
+            return
 
-        assert response.id == self.id
-
-        if not DEV and response.messageCount > self.msgCount:
+        if CLI and _msgCount > self.msgCount:
             self.GetMessage(self.msgCount)
-            self.msgCount = response.messageCount
+            self.msgCount = _msgCount
+
+        if GUI:
+            return (_msgCount, )
+
+        return _msgCount
 
 
 def run():
@@ -175,23 +217,7 @@ def run():
 
     if DEV:
         myChatClient = MyChatClient('DEV USER', stub, channel)
-    else:
-        name = input("User name : ")
-        myChatClient = MyChatClient(name, stub, channel)
 
-    # async def runClient():
-
-    #     myChatClient.Login()
-
-    #     while True:
-    #         # send Ping every 0.5 second
-    #         await asyncio.sleep(.1)
-    #         myChatClient.PingRequest()
-    #         value = await ainput("msg >> ")
-    #         if value == 'stop':
-    #             loop.stop()
-
-    if DEV:
         myChatClient.Login()
 
         myChatClient.PingRequest()
@@ -200,12 +226,9 @@ def run():
 
         myChatClient.SendMessage(
             "Hello This is Client {}".format(myChatClient.msgCount))
-    # else:
-    #     loop = asyncio.get_event_loop()
 
-    #     loop.run_until_complete(runClient())
-
-    #     loop.run_forever()
+    name = input("User name : ")
+    myChatClient = MyChatClient(name, stub, channel)
 
 
 if __name__ == '__main__':
