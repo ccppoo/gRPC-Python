@@ -41,7 +41,8 @@ User = __pb2.user__pb2.User
 class MyChatClient:
 
     def __init__(self, name: str, stub, channel) -> None:
-        self.stub = stub(channel)
+        self.__channel = channel
+        self.__stub = stub(channel)
         self.name = name
         self.id: int = 0
         self.msgCount: int = 0
@@ -83,8 +84,8 @@ class MyChatClient:
     # # override methods from ChatServer service
 
     # send : OK // get : Hello
-    def Login(self,) -> tuple(msgCOUNT, USER_ID):
-        response: Ok = self.stub.Login(Hello(user=self.__makeUser()))
+    def Login(self,) -> tuple([msgCOUNT, USER_ID]):
+        response: Ok = self.__stub.Login(Hello(user=self.__makeUser()))
 
         # save id from server's response
         self.id = response.id
@@ -107,8 +108,8 @@ class MyChatClient:
         return (msgCnt, id)
 
     # send : Pong // get : Ping
-    def PingRequest(self,) -> tuple(msgCOUNT):
-        response: Pong = self.stub.PingRequest(self.__makePing())
+    def PingRequest(self,) -> tuple([msgCOUNT]):
+        response: Pong = self.__stub.PingRequest(self.__makePing())
 
         _ok, _state = response.ok, response.state
 
@@ -149,7 +150,7 @@ class MyChatClient:
         if CLI or GUI:
             assert fromMsgCount != 0
 
-        response: ChatMessages = self.stub.GetMessage(
+        response: ChatMessages = self.__stub.GetMessage(
             self.__makeOk(fromMsgCount)
         )
 
@@ -180,13 +181,17 @@ class MyChatClient:
             print("::: end GetMessage :::")
 
     # send : ChatMessages // get : Ok
-    def SendMessage(self, msg: str) -> tuple(msgCOUNT):
+    def SendMessage(self, msg: str) -> tuple([msgCOUNT]):
+
+        if msg == '{quit}' or (CLI or DEV and msg == 'exit'):
+            self.__SHUTDOWN()
+            return
 
         if CLI:
             print("[{:3}] {:10}({}): {}".format(
                 self.msgCount, self.name, self.id, msg))
 
-        response: Ok = self.stub.SendMessage(self.__makeChatMessages(msg))
+        response: Ok = self.__stub.SendMessage(self.__makeChatMessages(msg))
 
         assert response.id == self.id
 
@@ -209,6 +214,9 @@ class MyChatClient:
             return (_msgCount, )
 
         return _msgCount
+
+    def __SHUTDOWN(self,):
+        self.__channel.close()
 
 
 def run():

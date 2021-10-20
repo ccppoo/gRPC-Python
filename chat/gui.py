@@ -13,18 +13,26 @@ DEV = argparser.DEV
 # gui.py doesn't work with chat_client.py when DEV mode
 assert DEV == False
 
+# send ping every _ seconds
+PING_time = 0.1
+
+CHATFORMAT = "[{:<3}]{:<20}({}) : {}"
+
 
 class ChatGUI(tk.Tk):
     def __init__(self, _grpcClient) -> None:
         super().__init__()
         self.name = NAME
+        self.id = 0
         self.grpcClient = _grpcClient
         self.setVars()
         self.guiSettings()
         self.setProtocol()
 
     def setVars(self):
-        self.msgCount = 5
+        self.msgCount = 0
+        self.msgCount_received = 0
+        self.stubThread = None
 
     def guiSettings(self):
 
@@ -36,13 +44,14 @@ class ChatGUI(tk.Tk):
         self.msg_frame = tk.Frame(self.msgShow_frame)
         self.scrollbar = tk.Scrollbar(self.msg_frame)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
         self.msg_list = tk.Listbox(
             self.msg_frame, height=17,
-            width=100, yscrollcommand=self.scrollbar.set
+            width=100,
         )
         self.msg_list.pack(side=tk.LEFT, fill=tk.BOTH)
         self.msg_list.pack()
+        self.msg_list.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.configure(command=self.msg_list.yview)
 
         # msg_frame.grid(row=0, column=0, columnspan=2)
         self.msg_frame.pack()
@@ -77,14 +86,28 @@ class ChatGUI(tk.Tk):
 
     # threading
     def send(self, event=None):
-        self.msgCount += 1
         msg = self.my_msg.get()
         self.my_msg.set("")
 
-        self.msg_list.insert(self.msgCount, msg)
+        # when msgCount returned by SendMessage is larger then self.msgCount
+        # it should call getMessage for update, but since self.stubHandler
+        # calls PingRequest every PING_time, self.send doesn't do anything
+        # but just sending a message
+        self.msgCount_received = self.grpcClient.SendMessage(f'{msg}')
 
-        if msg == "{quit}":
+        if self.msgCount_received:
+            self.msgCount_received = self.msgCount_received[0]
+        else:
             self.quit()
+
+        chatshown = CHATFORMAT.format(self.msgCount, self.name, self.id, msg)
+
+        self.msgCount += 1
+        self.msg_list.insert(self.msgCount, chatshown)
+        self.msg_list.yview_moveto(1)
+
+        # if msg == "{quit}":
+        #     self.quit()
 
     def on_closing(self, event=None):
         self.my_msg.set("{quit}")
@@ -93,9 +116,38 @@ class ChatGUI(tk.Tk):
     # threading
     # receive, send ping, send message
     def stubHandler(self, ):
-        pass
+        msgCount, id = self.grpcClient.Login()
+
+        self.id = id
+        self.msgCount = msgCount
+        self.msgCount_received = msgCount
+
+        mcount = msgCount
+
+        import time
+        mem = time.time()
+
+        while True:
+            time.sleep(.1)
+            if(PING_time < time.time() - mem):
+                mcount = self.grpcClient.PingRequest()[0]
+                mem = time.time()
+
+            if(self.msgCount_received > self.msgCount or mcount > self.msgCount):
+                msgs = self.grpcClient.GetMessage(self.msgCount)
+                for msg in msgs:
+                    self.msg_list.insert(
+                        msg[0],
+                        CHATFORMAT.format(msg[0], msg[1], msg[2], msg[3])
+                    )
+                    self.msg_list.yview_moveto(1)
+                self.msgCount = self.msgCount + len(msgs)
 
     def run(self, ):
+        self.stubThread = threading.Thread(target=self.stubHandler, )
+        self.stubThread.daemon = True
+        self.stubThread.start()
+
         self.mainloop()
 
 
@@ -106,4 +158,4 @@ if __name__ == '__main__':
 
     grpcClient = gRPC_client.MyChatClient(NAME, stub, channel)
 
-    ChatGUI(grpcClient)
+    ChatGUI(grpcClient).run()

@@ -1,10 +1,19 @@
+import time
 from proto_modules import chat_server_pb2_grpc as __pb2_grpc
 from proto_modules import chat_server_pb2 as __pb2
 import grpc
 from concurrent import futures
 
 # to activate : python chat_server.py --dev
-from argparser import DEV
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--dev", help="enables dev mode", action="store_true")
+args = parser.parse_args()
+if args.dev:
+    DEV = True
+else:
+    DEV = False
 
 ## Protocol Buffer Data : defined at /protos/*.proto ##
 
@@ -21,6 +30,8 @@ Chat = __pb2.message__pb2.Chat
 
 # user.proto
 User = __pb2.user__pb2.User
+
+mem = time.time()
 
 
 class ChatServerPython(__pb2_grpc.ChatServerServicer):
@@ -138,6 +149,12 @@ class ChatServerPython(__pb2_grpc.ChatServerServicer):
         name: str = request.user.name
         id: int = request.user.id
         msgCnt: int = request.messageCount
+
+        global mem
+
+        if(3 < time.time() - mem):
+            print(f"CURRENT MSG_COUNT : {self.getMsgCount()}")
+            mem = time.time()
 
         if DEV:
             print()
