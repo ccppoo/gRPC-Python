@@ -10,3 +10,13 @@ Because [example](https://github.com/grpc/grpc) given from the
 I will add my own sample and also cover most of the examples from [gRPC repository](https://github.com/grpc/grpc/tree/master/examples/python)
 
 ## 1. Hello World - from [gRPC/gRPC](https://github.com/grpc/grpc)
+
+Basic example from [gRPC/gRPC](https://github.com/grpc/grpc)
+
+![hello_world_image](./hello_world/images/preview.png)
+
+## 2. chat with GUI [chat](./chat/README.md)
+
+Using basic gRPC server and client(Sync) with GUI(tkinter)
+
+![chat_example_image](./chat/images/preview.png)
