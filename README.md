@@ -13,10 +13,10 @@ I will add my own sample and also cover most of the examples from [gRPC reposito
 
 Basic example from [gRPC/gRPC](https://github.com/grpc/grpc)
 
-![hello_world_image](./hello_world/images/preview.png)
+![hello_world_image](./hello_world/images/preview.PNG)
 
 ## 2. chat with GUI [chat](./chat/README.md)
 
 Using basic gRPC server and client(Sync) with GUI(tkinter)
 
-![chat_example_image](./chat/images/preview.png)
+![chat_example_image](./chat/images/preview.PNG)
