@@ -3,12 +3,10 @@ import grpc
 from proto_modules import chat_server_pb2 as __pb2
 from proto_modules import chat_server_pb2_grpc as __pb2_grpc
 
-import asyncio
-
 # to activate : python chat_client.py --dev
 from argparser import DEV
 
-from typing import NewType
+from typing import NewType, Tuple, List
 
 # Typing
 USER_NAME = NewType('UserName', str)
@@ -84,7 +82,7 @@ class MyChatClient:
     # # override methods from ChatServer service
 
     # send : OK // get : Hello
-    def Login(self,) -> tuple([msgCOUNT, USER_ID]):
+    def Login(self,) -> Tuple[msgCOUNT, USER_ID]:
         response: Ok = self.__stub.Login(Hello(user=self.__makeUser()))
 
         # save id from server's response
@@ -108,7 +106,7 @@ class MyChatClient:
         return (msgCnt, id)
 
     # send : Pong // get : Ping
-    def PingRequest(self,) -> tuple([msgCOUNT]):
+    def PingRequest(self,) -> Tuple[msgCOUNT]:
         response: Pong = self.__stub.PingRequest(self.__makePing())
 
         _ok, _state = response.ok, response.state
@@ -136,8 +134,7 @@ class MyChatClient:
 
     # send : Ok // get : ChatMessages
 
-    def GetMessage(self, fromMsgCount: int = 0) -> \
-            list((msgCOUNT, USER_NAME, USER_ID, msgCONTENT)):
+    def GetMessage(self, fromMsgCount: int = 0) -> List[msgCOUNT, USER_NAME, USER_ID, msgCONTENT]:
 
         if DEV:
             fromMsgCount = 0
@@ -181,7 +178,7 @@ class MyChatClient:
             print("::: end GetMessage :::")
 
     # send : ChatMessages // get : Ok
-    def SendMessage(self, msg: str) -> tuple([msgCOUNT]):
+    def SendMessage(self, msg: str) -> Tuple[msgCOUNT]:
 
         if msg == '{quit}' or (CLI or DEV and msg == 'exit'):
             self.__SHUTDOWN()
@@ -213,7 +210,7 @@ class MyChatClient:
         if GUI:
             return (_msgCount, )
 
-        return _msgCount
+        return (_msgCount, )
 
     def __SHUTDOWN(self,):
         self.__channel.close()

@@ -41,6 +41,11 @@ class ChatServerPython(__pb2_grpc.ChatServerServicer):
     # make~ : mathod for making proto message buffer
     # others : overriding method defined from chat_server.proto :: service ChatServer
 
+    """
+    Methods are overrided from ChatServerServicer class
+    Methods are declared in proto_modules/chat_server.proto 'service ChatServer'
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.chat_que = []
@@ -69,7 +74,7 @@ class ChatServerPython(__pb2_grpc.ChatServerServicer):
             return ''
 
     # # message(Protocol buffer data) maker
-    def makeUser(self, _name: str, _id: int = 0):
+    def makeUser(self, _name: str, _id: int = 0) -> User:
 
         if (_id != 0):
             return User(
@@ -82,7 +87,7 @@ class ChatServerPython(__pb2_grpc.ChatServerServicer):
             id=self.users.get(_name)
         )
 
-    def makePong(self, UserMsgCount: int, id: int):
+    def makePong(self, UserMsgCount: int, id: int) -> Pong:
 
         st = State.IDLE if UserMsgCount == self.getMsgCount() else State.BUSY
 
@@ -91,7 +96,7 @@ class ChatServerPython(__pb2_grpc.ChatServerServicer):
             state=st
         )
 
-    def makeOk(self, valid: bool, id: int = 0):
+    def makeOk(self, valid: bool, id: int = 0) -> Ok:
         # while sending Ok proto buff from Server,
         # there are no reason to get msgCount from callee
         # always need to send latest value to client
