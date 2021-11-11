@@ -1,15 +1,17 @@
-# 1. Chat (with GUI)
+# 1. Chat (with GUI) - Unary
 
-Start server
+Usage:
 
-```
-path/to/GRPC-PYTHON-QUICKSTART/chat >> chat_server.py
-```
-
-run multiple client(with GUI)
+First, Start server
 
 ```
-path/to/GRPC-PYTHON-QUICKSTART/chat >> gui.py YOUR_NICK_NAME
+path/to/GRPC-PYTHON-QUICKSTART/chat> python chat_server.py
 ```
 
-![exmaple ](./images/preview.PNG)
+Then, run multiple client(GUI)
+
+```
+path/to/GRPC-PYTHON-QUICKSTART/chat> python gui.py <YOUR_NICK_NAME>
+```
+
+![exmaple ](./images/gRPC_chat.gif)

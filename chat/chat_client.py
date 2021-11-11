@@ -134,7 +134,7 @@ class MyChatClient:
 
     # send : Ok // get : ChatMessages
 
-    def GetMessage(self, fromMsgCount: int = 0) -> List[msgCOUNT, USER_NAME, USER_ID, msgCONTENT]:
+    def GetMessage(self, fromMsgCount: int = 0) -> list([msgCOUNT, USER_NAME, USER_ID, msgCONTENT]):
 
         if DEV:
             fromMsgCount = 0
