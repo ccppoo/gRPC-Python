@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package chating.server;
+
+import "message.proto";
+import "user.proto";
+
+service ChatServer {
+
+    // add new user to server, Ok message with new User id
+    rpc Login (Hello) returns (Ok);
+
+    // ping method :: ask new messages to server
+    rpc PingRequest (Ping) returns (Pong);
+    
+    // Server returns messages as stream
+    rpc GetMessage (Ok) returns (stream message.Chat);
+
+    // send message from client to server
+    rpc SendMessage (message.ChatMessages) returns (Ok);
+}
+
+message Hello {
+    // send User name, with no id (default value)
+    user.User user = 1;
+}
+
+// Since gRPC server can't invoke call to client, 
+// client should continuaslly Ping to server to fetch messages
+message Ping {
+    // 지금까지 받은 메세지 messageCount
+    user.User user = 1;
+    int32 messageCount = 2;
+}
+
+message Pong {
+    Ok ok = 1;
+    State state = 2;
+}
+
+message Ok {
+    bool ok = 1;
+
+    int32 messageCount = 2;
+
+    // ID of user 
+    int32 id = 3;
+}
+
+// Server telling client if there is messages to receive
+enum State {
+    // SERVER : You have no new messages!
+    IDLE = 0;
+
+    // SERVER : You have new messages!
+    BUSY = 1;
+}
