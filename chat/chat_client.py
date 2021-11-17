@@ -7,6 +7,7 @@ from proto_modules import chat_server_pb2_grpc as __pb2_grpc
 from argparser import DEV
 
 from typing import NewType, Tuple, List
+from dataclasses import dataclass
 
 # Typing
 USER_NAME = NewType('UserName', str)
@@ -34,6 +35,14 @@ Chat = __pb2.message__pb2.Chat
 
 # user.proto
 User = __pb2.user__pb2.User
+
+
+@dataclass
+class ChatData:
+    msgCOUNT: int
+    user_name: str
+    user_id: int
+    msgCONTENT: str
 
 
 class MyChatClient:
@@ -134,7 +143,7 @@ class MyChatClient:
 
     # send : Ok // get : ChatMessages
 
-    def GetMessage(self, fromMsgCount: int = 0) -> list([msgCOUNT, USER_NAME, USER_ID, msgCONTENT]):
+    def GetMessage(self, fromMsgCount: int = 0) -> List[ChatData]:
 
         if DEV:
             fromMsgCount = 0
@@ -155,6 +164,13 @@ class MyChatClient:
         chats = response.chatMessages
 
         if GUI:
+            sending = []
+            for msgData in chats:
+                sending.append(ChatData(msgData.messageCount, msgData.user.name,
+                                        msgData.user.id, msgData.message))
+
+            return sending
+
             return [
                 (m.messageCount, m.user.name, m.user.id, m.message)
                 for m in chats

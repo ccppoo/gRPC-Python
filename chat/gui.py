@@ -2,8 +2,10 @@ import argparser
 import threading
 import tkinter as tk
 import chat_client as gRPC_client
+from chat_client import ChatData
 import grpc
 from proto_modules import chat_server_pb2_grpc as __pb2_grpc
+from typing import List
 
 
 # from argparser
@@ -134,11 +136,14 @@ class ChatGUI(tk.Tk):
                 mem = time.time()
 
             if(self.msgCount_received > self.msgCount or mcount > self.msgCount):
-                msgs = self.grpcClient.GetMessage(self.msgCount)
+                msgs: List[ChatData] = self.grpcClient.GetMessage(
+                    self.msgCount)
+
                 for msg in msgs:
                     self.msg_list.insert(
-                        msg[0],
-                        CHATFORMAT.format(msg[0], msg[1], msg[2], msg[3])
+                        msg.msgCOUNT,
+                        CHATFORMAT.format(
+                            msg.msgCOUNT, msg.user_name, msg.user_id, msg.msgCONTENT)
                     )
                     self.msg_list.yview_moveto(1)
                 self.msgCount = self.msgCount + len(msgs)
