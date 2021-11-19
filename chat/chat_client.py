@@ -171,11 +171,6 @@ class MyChatClient:
 
             return sending
 
-            return [
-                (m.messageCount, m.user.name, m.user.id, m.message)
-                for m in chats
-            ]
-
         if DEV:
             print()
             print("len(chats) : {}".format(len(chats)))
