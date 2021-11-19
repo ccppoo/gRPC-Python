@@ -1,4 +1,20 @@
-# 2-1. Chat with stream
+## changes from `chat` example
+
+1. GetMessages now return `Chat` stream
+
+   - `protos/chat_server.proto` service has changes
+
+   - so `chat_client.py` :: class MyChatClient :: GetMessages has changes
+
+2. Removed DEV, CLI case at `chat_client.py`
+
+   - it would be more clear to manipulate code, only concerning as gRPC::stub server side
+
+3. added comment for more clear explaination
+
+4. added more stream like example
+
+# 3-1. Chat with stream
 
 Usage:
 
@@ -14,7 +30,7 @@ Then, run multiple client(GUI)
 path/to/GRPC-PYTHON-QUICKSTART/chat_stream> python gui.py <YOUR_NICK_NAME>
 ```
 
-# 2-2. Chat with stream (more stream like usage)
+# 3-2. Chat with stream (more stream like usage)
 
 Usage:
 

@@ -23,22 +23,12 @@ Using basic gRPC server and client(Sync) with GUI(tkinter)
 
 ## 3. chat with GUI [chat_stream](./chat_stream/README.md)
 
-Use same GUI script(gui.py) but use streaming connection
+Uses same GUI script(gui.py from `2.chat with GUI`) but use streaming connection
 
-Changes from `2.chat with GUI`
+## 4. [Bidrectional streaming](./bidirection/README.md)
 
-1. GetMessages now return `Chat` stream
+working in progress
 
-   - `protos/chat_server.proto` service has changes
+## 5. [interceptor](./interceptor/README.md)
 
-   - so `chat_client.py` :: class MyChatClient :: GetMessages has changes
-
-2. Removed DEV, CLI case at `chat_client.py`
-
-   - it would be more clear to manipulate code, only concerning as gRPC::stub server side
-
-3. added comment for more clear explaination
-
-4. added more stream like example
-
-   - read more about `chat_client_2.py`, `gui_2.py` at [chat_stream README](./chat_stream/README.md)
+working in progress
