@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package interceptors.utils;
+
+message Ping {
+    string value = 1;
+}
+
+message Pong {
+    string value = 1;
+}

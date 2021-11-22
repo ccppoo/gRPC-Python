@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package interceptors;
+
+import "utils.proto";
+
+service SecureMessage {
+
+    // ping method :: ask new messages to server
+    rpc PingRequest (utils.Ping) returns (utils.Pong);
+    
+    // send message to server
+    rpc sendMessage (Load) returns (Load);
+
+    // example for stream-unary
+    rpc addTheseNumbers (stream Num) returns (Num);
+}
+
+message Load {
+    string value = 1;
+
+    // this optional value is manipulated at interceptor,
+    // not used for end-point(server, client)
+    optional encodeType encode = 2;
+}
+
+message Num {
+    int32 value = 1;
+}
+
+enum encodeType{
+    NONE = 0;
+    BASE64 = 1;
+}
