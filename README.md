@@ -31,4 +31,6 @@ working in progress
 
 ## 5. [interceptor](./interceptor/README.md)
 
-working in progress
+![interceptor concept image](./interceptor/images/interceptor_describe.PNG)
+
+gRPC Interceptors for client and server side
