@@ -78,6 +78,12 @@ See example code at grpc/grpc example code - [default_value](https://github.com/
 
   adds metadata at client's payload
 
+  Metadatum is consisted of `key` and `value`
+
+  `key` should not start with capitalized character, with no `space`, and decoded
+
+  so when adding meta*datum*, it should be appened as tuple (`key`, `value`)
+
 ### Server side
 
 - headerInterceptor
