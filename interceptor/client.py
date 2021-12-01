@@ -1,9 +1,10 @@
 import grpc
+from proto_modules.interceptSample_pb2 import Num
 from proto_modules.utils_pb2 import Ping, Pong
 from proto_modules.interceptSample_pb2 import Load
 from proto_modules.interceptSample_pb2_grpc import SecureMessageStub
 
-from interceptors.client.encodeInterceptor import EncodeInterceptor
+from interceptors.client.headerInterceptor import HeaderInterceptor
 from interceptors.client.messageFormatInterceptor import MessageFormatInterceptor
 
 
@@ -34,25 +35,40 @@ class InterceptClient:
 
         return response.value
 
+    def sendNumbers(self, ) -> int:
+
+        # could send as generator
+        response: Num = self.__stub.addTheseNumbers(
+            (Num(value=n) for n in range(1, 11)))
+
+        # or send after making iterable
+        # response: Num = self.__stub.addTheseNumbers(
+        #     iter([Num(value=n) for n in range(1, 11)]))
+
+        return response.value
+
 
 def run():
     channel = grpc.insecure_channel('localhost:50051')
 
     formatInterceptor = MessageFormatInterceptor()
-    encodeInterceptor = EncodeInterceptor()
+    headerInterceptor = HeaderInterceptor()
 
     _interceptChannel = grpc.intercept_channel(
-        channel, formatInterceptor, encodeInterceptor)
+        channel, formatInterceptor, headerInterceptor)
 
     stub = SecureMessageStub(_interceptChannel)
 
     interceptClient = InterceptClient(stub)
 
     response = interceptClient.sendPing()
-    print(response)
+    print(f'response from sendPing : {response}')
 
     response: str = interceptClient.sendMessage()
-    print(response)
+    print(f'response from sendMessage : {response}')
+
+    response = interceptClient.sendNumbers()
+    print(f'response from sendNumbers : {response}')
 
 
 if __name__ == '__main__':
